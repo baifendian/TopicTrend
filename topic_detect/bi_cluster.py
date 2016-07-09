@@ -35,8 +35,7 @@ class Cluster:
        roots = set()
        ret = []
        for i in range(data_number):
-           self.find(i)
-           roots.add(self.bi_set[i])
+           roots.add(self.find(i))
        for i in roots:
            item = []
            for j in range(data_number):
@@ -52,13 +51,14 @@ class Cluster:
         words = jieba.cut(line)
         line_len = 0
         for word in words:
+            if isinstance(word, str):
+                word = word.decode('utf-8')
             word_num.setdefault(word, 0)
             word_num[word] = word_num[word] + 1
             line_len = line_len + 1
-        for key in word_num:
+        for key in word_num.keys():
             if self.tfidf_model_dict.has_key(key):
                 vec.append((self.tfidf_model_dict[key][0], word_num[key] * 1.0 / line_len * self.tfidf_model_dict[key][1]))
-#        print vec
         return vec
 
     def get_similary(self, idx1, idx2):
@@ -91,6 +91,7 @@ class Cluster:
         words = jieba.cut(line)
         ret = np.zeros(100)
         for word in words:
+            
             try:
                 ret = ret + self.word2vec_model[word]
             except:
@@ -108,11 +109,14 @@ class Cluster:
     def train_by_word2vec(self, data, threshold=0.1):
         idx = 0
         for line in data:
+            if isinstance(line, str):
+                line = line.decode('utf-8')
             if len(line) > 5:
                 self.sentence.append(line)
                 idx = idx + 1
-        for i in range(len(self.sentence)):
-            for j in range(i + 1, len(self.sentence)):
+        sentence_len = len(self.sentence)
+        for i in range(sentence_len):
+            for j in range(i + 1, sentence_len):
                 similary = self.get_similary_by_word2vec(i, j)
                 if similary > threshold:
                     self.union(i, j, threshold, 0)
@@ -124,7 +128,7 @@ class Cluster:
         for item in input_tfidf_model:
             items = item.split(" ")
             if len(items) == 2:
-                self.tfidf_model_dict[items[0]] = (idx, float(items[1].replace("\n", "")))
+                self.tfidf_model_dict[items[0].decode('utf-8')] = (idx, float(items[1].replace("\n", "")))
                 idx = idx + 1
         idx = 0
         for line in data:
@@ -132,27 +136,32 @@ class Cluster:
                 self.sentence.append(line)
                 self.tfidf_sparse.append(self.get_tfidf(line))
                 idx = idx + 1
-        for item in self.tfidf_sparse:
-            print item
-        for i in range(len(self.tfidf_sparse)):
-            for j in range(i + 1, len(self.tfidf_sparse)):
+        tfidf_sparse_length = len(self.tfidf_sparse)
+        for i in range(tfidf_sparse_length):
+            for j in range(i + 1, tfidf_sparse_length):
                 similary = self.get_similary(i, j)
-                print similary
                 if similary > threshold:
                     self.union(i, j, threshold, 1)
         return self.myprint(idx)
 if __name__ == "__main__":
     cluster = Cluster("./word2vec_model")
-    data = ['果新闻简介：小时苹果新闻资讯！投稿请私信','果中文网微博机构认证微博机构认证苹果中文网官方微博','果创意馆微博机构认证微博机构认证苹果创意馆官网官方微博找人关系链找人关系链','果苹果主演：文素丽金泰佑李善均评分：人赞兴趣直达区景点','果园地铁站北京地铁一号线地铁苹果签到人数人赞','石老蔡发表了博文揭底无人驾驶车：三大件成本起码万美元来源：第一财经特斯拉的拥有者永远不会认为它有什么问题，就好像苹果的粉丝会不假思索地排队购买一样。一名特斯拉车主对第一财经记者表','底无人驾驶车：三大件成本起码万美元来源：第一财经特斯拉的拥有者永远不会认为它有什么问题，就好像苹果的粉丝会不假思索地排队购买一样。一名特斯拉车主对第一财经记者表示。但随着的自动驾驶夺命车祸日>发布者：穿石老蔡','利君高利君每天起床的原因不是睡醒了，而是妈呀我好饿我的面包牛奶饼干鸡蛋苹果等着我宠幸呢馋嘴馋嘴然后就神清气爽的起来了酷酷','千雨千千雨给苹果手机充电的正确方法笑笑','奕小奕刚开始认识苹果的时候，它还比较小，我还能够抱它。现在长大了，我都抱不动了。小苹果变成了大苹果，希望时间停留在现在，你不在长大该多好呢。图片多余一张只显示音频视频的九宫格','博会员：孩子李波很多人跟我说别买国货，微软苹果之类质量还是好些，我看全世界都一样，有时人家还离谱些','果新闻简介：小时苹果新闻资讯！投稿请私信','果中文网微博机构认证微博机构认证苹果中文网官方微博','果园地铁站北京地铁一号线地铁苹果签到人数人赞','食日记早上火龙果奇艺果苹果汁中午芦笋紫甘蓝粥配肉松','人【好书记年劈山开路植树育林万亩荒山变成花果山】山东省蓬莱市南官山村书记吴长洲，带领乡亲们劈山开路修出多公里的山路，村里的苹果出山，户均收入万多元。路通了，他又带着村民绿化荒山，办起农家乐。>年里，吴长洲领着大伙干出现实版的山乡巨变']
-    ret = cluster.train_by_tfidf(data, 'tfidf_model', threshold=0.8)
+    in_data = open("07_05_keyword_clean", 'r')
+    out_data1 = open("cluster_ret1", 'w')
+    out_data2 = open('cluster_ret2', 'w')
+    data = []
+    for item in in_data:
+        data.append(item)
+    ret = cluster.train_by_tfidf(data, 'tfidf_model2', threshold=0.15)
     for item in ret:
-        print "====================="
+        out_data1.write("=====================\n")
         for i in item:
-            print i
-    print "******************************************"
+            out_data1.write(i + "\n")
     ret = cluster.train_by_word2vec(data, threshold=0.5)
     for item in ret:
-        print "========================"
+        out_data2.write("========================\n")
         for i in item:
-            print i
-
+            out_data2.write(i + '\n')
+    in_data.close()
+    out_data1.close()
+    out_data2.close()
+	

@@ -8,7 +8,7 @@ from mongodb_op import MongoOps
 from bi_cluster import Cluster
 from get_summary import GetSummary
 
-class EventDetector(object):
+class TopicDetector(object):
     '''
         话题发现器
         使用聚类方法发现描述相同的话题或事件
@@ -110,7 +110,7 @@ class EventDetector(object):
         docs = self.get_source(date, cate)
         logging.info("there are %d docs" % len(docs))
         if cate == 0:
-            threshold = 0.5
+            threshold = 0.15
         elif cate == 2:
             threshold = 0.5
         else:
@@ -154,8 +154,8 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     date = sys.argv[1]
-    detector = EventDetector("model/tfidf_model1", "model/word2vec_model")
-    #detector.process(date, 0, 0.5)
-    #detector.process(date, 1, 0.5)
-    #detector.process(date, 2, 0.5)
+    detector = TopicDetector("model/tfidf_model1", "model/word2vec_model")
+    detector.process(date, 0, 0.5)
+    detector.process(date, 1, 0.5)
+    detector.process(date, 2, 0.5)
     detector.process(date, 3, 0.5)
