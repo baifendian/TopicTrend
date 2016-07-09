@@ -17,7 +17,7 @@ class GetSummary:
             tr4w.analyze(text=text, lower=True, window=2)
             #ret = tr4w.get_keywords()
             ret = tr4w.get_keyphrases(keywords_num = 12, min_occur_num = 0)
-            if len(ret) >= 0:
+            if len(ret) > 0:
                 return ret[0]
             else :
                 return ""
