@@ -22,6 +22,7 @@ web前端展示
 将功能模块构建成DAG工作流，每天定时调度
 
 ## 业务流程
-
+![](https://github.com/baifendian/TopicTrend/blob/master/yewu.png) 
 
 ## 系统架构
+![](https://github.com/baifendian/TopicTrend/blob/master/jiagou.png) 
